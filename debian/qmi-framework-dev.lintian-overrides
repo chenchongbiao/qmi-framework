@@ -1,0 +1,4 @@
+# -dev 包提供 multiarch 目录下的共享库开发链接（lib*.so → 主包 lib*.so.1.0.0）与头文件，
+# 沿用 rsdk 模板 control 默认的 Architecture: all，与主包 qmi-framework 的打包策略一致，
+# 因此出现 triplet 目录与包架构不符的提示，属有意的项目打包策略，豁免。
+qmi-framework-dev binary: triplet-dir-and-architecture-mismatch is for arm64 instead of all [usr/lib/aarch64-linux-gnu/]

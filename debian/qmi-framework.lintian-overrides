@@ -1,0 +1,27 @@
+# libqmi_common 是纯公共/IDL 定义库：readelf -d 显示 NEEDED 为 0 条（连 libc 都不链接），
+# nm -D -u 只剩 __cxa_finalize / __gmon_start__ / _ITM_registerTMCloneTable /
+# _ITM_deregisterTMCloneTable 四个弱引用——这是任何 .so 都带的链接器内部符号，由动态链接器
+# 可选解析，并非真实缺失的前置依赖。已按 debian-packaging 规范先做调查再豁免，不改链接参数。
+# 注意：该 tag 的上下文必须带方括号（lintian 报出的就是 [路径] 形式），否则 mismatched-override。
+qmi-framework binary: shared-library-lacks-prerequisites [usr/lib/aarch64-linux-gnu/libqmi_common.so.1.0.0]
+
+# 有意把四个 SONAME（libqmi_common/libqencdec/libqcci/libqcsi）合进单个二进制包
+# qmi-framework，与上游及 QCOM PPA 的按 SONAME 拆包（libqmi-common1/libqcci1/…）方案不同，
+# 属设计选择：包里文件互为一体，合装可避免出现"只装了半个框架"的中间态。
+qmi-framework binary: package-name-doesnt-match-sonames libqcci1 libqcsi1 libqencdec1 libqmi-common1
+
+# 以下 tag 全部源于本项目的打包策略：沿用 rsdk 模板 control 默认的 Architecture: all
+# （模板 control 原文即 all，按项目要求维持不变）。dpkg/debhelper 对 arch:all 包不跑
+# dh_strip / dh_shlibdeps / dh_makeshlibs，也不自动加 ldconfig trigger，lintian 因此报出
+# 下列结构性 tag。豁免前已核实四个库的 DT_NEEDED：libqmi_common 无任何 NEEDED；
+# libqencdec 只需 libc.so.6；libqcci/libqcsi 需 libc.so.6 + libqencdec.so.1（同包内提供）。
+# libc6 为必装包、其余均为同包内 SONAME，运行依赖并无真实缺失，故按模板方式豁免。
+qmi-framework binary: arch-independent-package-contains-binary-or-object [usr/lib/aarch64-linux-gnu/libqcci.so.1.0.0]
+qmi-framework binary: arch-independent-package-contains-binary-or-object [usr/lib/aarch64-linux-gnu/libqcsi.so.1.0.0]
+qmi-framework binary: arch-independent-package-contains-binary-or-object [usr/lib/aarch64-linux-gnu/libqencdec.so.1.0.0]
+qmi-framework binary: arch-independent-package-contains-binary-or-object [usr/lib/aarch64-linux-gnu/libqmi_common.so.1.0.0]
+qmi-framework binary: triplet-dir-and-architecture-mismatch is for arm64 instead of all [usr/lib/aarch64-linux-gnu/]
+qmi-framework binary: lacks-ldconfig-trigger
+qmi-framework binary: no-shlibs
+qmi-framework binary: unstripped-binary-or-object
+qmi-framework binary: undeclared-elf-prerequisites
